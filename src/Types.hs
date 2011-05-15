@@ -6,7 +6,6 @@
 -- ----------------------------------------------
 module Types where
 
-
 -- ----------------------------------------------
 -- Expressions
 -- ----------------------------------------------
@@ -18,7 +17,7 @@ data Exp =
     IfExp Exp Exp Exp    |
     LetExp [Binding] Exp |
     ProcExp [Ident] Exp  |
-    AppExp Exp Exp
+    AppExp Exp [Exp]
     deriving (Show)
 
 type Ident = String
