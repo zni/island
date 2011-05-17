@@ -17,11 +17,13 @@ data Exp =
     IfExp Exp Exp Exp    |
     LetExp [Binding] Exp |
     ProcExp [Ident] Exp  |
-    AppExp Exp [Exp]
+    AppExp Exp [Exp]     |
+    LetRecExp [RecBinding] Exp
     deriving (Show)
 
 type Ident = String
 type Binding = (Ident, Exp)
+type RecBinding = (Ident, [Ident], Exp)
 
 -- Unary operators.
 data UnOp =

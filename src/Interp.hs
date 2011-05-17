@@ -79,6 +79,11 @@ evalExp (LetExp bindings body) env =
         env2        = extendEnv ids vals env
     in evalExp body env2
 
+-- LetRecExp
+evalExp (LetRecExp recbindings body) env = 
+    let recenv = extendEnvRec recbindings env
+    in evalExp body recenv
+
 -- ProcExp
 evalExp (ProcExp ids body) env = ProcVal (Closure ids body env)
 

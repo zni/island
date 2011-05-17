@@ -15,4 +15,5 @@ import Types
 main = do { f:_  <- getArgs
           ; expr <- lparse f
           ; print $ evalExp expr newEnv
+--          ; print expr
           }
