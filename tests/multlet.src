@@ -4,3 +4,4 @@ in let val x = x * 5
        val y = y * y
        val z = let val a = 4 in a
    in x + y
+{- result: 2426 -}
