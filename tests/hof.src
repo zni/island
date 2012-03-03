@@ -4,3 +4,4 @@ let val f = proc (g, x)
                     else 0
 in let val times4 = proc (x) (f f x)
    in (times4 3)
+{- result: 12 -}

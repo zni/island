@@ -114,10 +114,10 @@ proc = do m_reserved "proc"
 
 -- Parse 'app' expression.
 app :: Parser Exp
-app = do (op, ops) <- m_parens ( do { op <- expParser
-                                    ; ops <- many expParser
-                                    ; return (op, ops)
-                                    } )
+app = do (op, ops) <- m_parens (do { op <- expParser
+                                   ; ops <- many expParser
+                                   ; return (op, ops)
+                                   } )
          return (AppExp op ops)
          
 
