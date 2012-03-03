@@ -1,6 +1,6 @@
 island
 ------
-Haskell implementation of the interpreter from 
+Interpreter written in Haskell based on the interpreter from the
 "Essentials of Programming Languages".
 
 Probably not working as of 13-02-12.
