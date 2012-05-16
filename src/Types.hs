@@ -4,7 +4,11 @@
 --
 -- Types for the interpreter.
 -- ----------------------------------------------
-module Types where
+module Types ( Exp(..)
+             , Ident(..)
+             , Binding(..)
+             , RecBinding(..)
+             , PrimOp(..)) where
 
 -- ----------------------------------------------
 -- Expressions
@@ -12,8 +16,7 @@ module Types where
 data Exp =
     Lit Integer          |
     Var String           |
-    UnExp UnOp Exp       |
-    BinExp BinOp Exp Exp |
+    PrimExp PrimOp [Exp] |
     IfExp Exp Exp Exp    |
     LetExp [Binding] Exp |
     ProcExp [Ident] Exp  |
@@ -25,19 +28,13 @@ type Ident = String
 type Binding = (Ident, Exp)
 type RecBinding = (Ident, [Ident], Exp)
 
--- Unary operators.
-data UnOp =
-    Minus |
-    Inc   |
-    Dec
-    deriving (Show)
-
-
--- Binary operators.
-data BinOp =
+-- Primitive operations.
+data PrimOp =
     Add   |
     Sub   |
     Mult  |
     Div   |
-    Mod
+    Mod   |
+    Succ  |
+    Pred
     deriving (Show)

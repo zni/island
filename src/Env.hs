@@ -4,7 +4,14 @@
 --
 -- The environment for the interpreter.
 -- ----------------------------------------------
-module Env where
+module Env ( Value(..)
+           , Closure(..)
+           , Env(..)
+           , newEnv
+           , extendEnv
+           , extendEnvRec
+           , applyEnv
+           ) where
 
 import Data.Maybe (isJust, fromJust)
 import Data.Array.IArray
@@ -48,14 +55,14 @@ newEnv = []
 
 extendEnv :: [Ident] -> [Value] -> Env -> Env
 extendEnv d v env =
-    let varrefs = zip d [0..((length d) - 1)]
+    let varrefs = zip d [0..(length d - 1)]
         arr     = listArray (0, pred $ length d) v
     in (varrefs, arr):env
 
 extendEnvRec :: [RecBinding] -> Env -> Env
 extendEnvRec recs env =
     let procIds = map (\(p,_,_) -> p) recs
-        varrefs = zip procIds [0..((length procIds) - 1)]
+        varrefs = zip procIds [0..(length procIds - 1)]
         arr     = listArray (0, pred $ length procIds) $ mapClosure recs env2
         env2    = (varrefs, arr):env
     in env2
@@ -66,7 +73,7 @@ applyEnv :: Ident -> Env -> Value
 applyEnv v []     = error $ "Variable \'"++v++"\' never declared."
 applyEnv v ((vars,d):ds) =
     let loc = findRef v vars
-    in if isJust loc then d ! (fromJust loc) else applyEnv v ds
+    in if isJust loc then d ! fromJust loc else applyEnv v ds
     where findRef _ []         = Nothing
           findRef s ((n,l):xs) = if s == n then Just l else findRef s xs
 

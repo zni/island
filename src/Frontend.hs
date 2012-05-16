@@ -5,7 +5,7 @@
 -- 
 -- Parser for the interpreter.
 -- ----------------------------------------------
-module Frontend where
+module Frontend (lparse) where
 
 import Control.Applicative ((<*))
 import Text.Parsec
@@ -24,7 +24,7 @@ def = emptyDef{ commentStart = "{-"
               , identLetter = alphaNum
               , opStart      = oneOf "+-*%/="
               , reservedOpNames = ["+", "-", "*", "%",
-                                   "/", "=", "++", "--"]
+                                   "/", "=", "succ", "pred"]
               , reservedNames = ["if", "then", "else", "let",
                                  "letrec", "in", "val", "proc"]
               }
@@ -40,7 +40,7 @@ TokenParser{ parens = m_parens
 
 
 expParser :: Parser Exp
-expParser = buildExpressionParser table term
+expParser = try term -- buildExpressionParser table term
           <|> letExp      
           <|> letRecExp
           <|> ifExp
@@ -48,7 +48,7 @@ expParser = buildExpressionParser table term
           <|> app
           <?> "expression"
 
-
+{-
 table = [ [Prefix (m_reservedOp "-" >> return (UnExp Minus))]
         , [Infix (m_reservedOp "*" >> return (BinExp Mult)) AssocLeft]
         , [Infix (m_reservedOp "/" >> return (BinExp Div)) AssocLeft]
@@ -57,12 +57,33 @@ table = [ [Prefix (m_reservedOp "-" >> return (UnExp Minus))]
         , [Infix (m_reservedOp "-" >> return (BinExp Sub)) AssocLeft]
         ]
 
+-}
+
+-- Parse a primitive expression operator.
+ops =  (m_reservedOp "+" >> return Add)
+   <|> (m_reservedOp "-" >> return Sub)
+   <|> (m_reservedOp "%" >> return Mod)
+   <|> (m_reservedOp "*" >> return Mult)
+   <|> (m_reservedOp "/" >> return Div)
+   <|> (m_reservedOp "succ" >> return Succ)
+   <|> (m_reservedOp "pred" >> return Pred)
+   <?> "operand"
+
+primExp :: Parser Exp
+primExp = do
+  op <- ops
+  exps <- m_parens $ term `sepBy` m_whiteSpace
+  if null exps
+    then fail "cannot apply a primitive operation to an empty expression list."
+    else return $ PrimExp op exps
+  
 
 -- Expression terms
-term = try (m_parens expParser)
+term = primExp
     <|> app
     <|> fmap Var m_identifier
     <|> fmap Lit m_integer
+    <?> "term"
 
 
 -- Parse 'let' expression.
@@ -83,7 +104,7 @@ letExp = do try $ m_reserved "let"
 letRecExp :: Parser Exp
 letRecExp = do m_reserved "letrec"
                b <- many1 ( do { procName <- m_identifier
-                               ; ids <- m_parens $ m_identifier `sepBy` (m_symbol ",")
+                               ; ids <- m_parens $ m_identifier `sepBy` m_symbol ","
                                ; m_reservedOp "="
                                ; body <- expParser
                                ; return (procName,ids,body)
@@ -107,7 +128,7 @@ ifExp = do m_reserved "if"
 -- Parse 'proc' expression.
 proc :: Parser Exp
 proc = do m_reserved "proc"
-          ids <- m_parens $ m_identifier `sepBy` (m_symbol ",")
+          ids <- m_parens $ m_identifier `sepBy` m_symbol ","
           body <- expParser
           return (ProcExp ids body)
 
@@ -126,8 +147,8 @@ mainParser = m_whiteSpace >> expParser <* eof
 
 
 lparse   :: String -> IO Exp
-lparse f = do { result <- parseFromFile mainParser f 
-              ; case result of
-                    Left err   -> error $ show err
-                    Right expr -> return expr
-              }
+lparse f = do 
+  result <- parseFromFile mainParser f 
+  case result of
+    Left err   -> error $ show err
+    Right expr -> return expr

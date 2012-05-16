@@ -4,6 +4,7 @@
 --
 -- Interpreter driver.
 -- ----------------------------------------------
+module Main where
 
 import System.Environment (getArgs)
 
@@ -12,8 +13,7 @@ import Frontend
 import Interp
 import Types
 
-main = do { f:_  <- getArgs
-          ; expr <- lparse f
-          ; print $ evalExp expr newEnv
---          ; print expr
-          }
+main = do 
+  f:_  <- getArgs
+  expr <- lparse f
+  print $ evalExp newEnv expr
