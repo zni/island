@@ -1,7 +1,6 @@
 -- ----------------------------------------------
 -- Author  : Matthew Godshall
 -- Date    : 2011 May 13 18:16:03
--- Updated : 2011 May 15 18:58:34
 -- 
 -- Parser for the interpreter.
 -- ----------------------------------------------
@@ -14,6 +13,7 @@ import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
 import Text.Parsec.Combinator
+import Text.Parsec.Char
 import Text.Parsec.Prim (many)
 
 import Types
@@ -26,7 +26,7 @@ def = emptyDef{ commentStart = "{-"
               , reservedOpNames = ["+", "-", "*", "%",
                                    "/", "=", "succ", "pred"]
               , reservedNames = ["if", "then", "else", "let",
-                                 "letrec", "in", "val", "proc"]
+                                 "letrec", "in", "val", "proc", "type"]
               }
 
 
@@ -40,24 +40,13 @@ TokenParser{ parens = m_parens
 
 
 expParser :: Parser Exp
-expParser = try term -- buildExpressionParser table term
+expParser = try term
           <|> letExp      
           <|> letRecExp
           <|> ifExp
           <|> proc
           <|> app
           <?> "expression"
-
-{-
-table = [ [Prefix (m_reservedOp "-" >> return (UnExp Minus))]
-        , [Infix (m_reservedOp "*" >> return (BinExp Mult)) AssocLeft]
-        , [Infix (m_reservedOp "/" >> return (BinExp Div)) AssocLeft]
-        , [Infix (m_reservedOp "%" >> return (BinExp Mod)) AssocLeft]
-        , [Infix (m_reservedOp "+" >> return (BinExp Add)) AssocLeft]
-        , [Infix (m_reservedOp "-" >> return (BinExp Sub)) AssocLeft]
-        ]
-
--}
 
 -- Parse a primitive expression operator.
 ops =  (m_reservedOp "+" >> return Add)
@@ -82,7 +71,7 @@ primExp = do
 term = primExp
     <|> app
     <|> fmap Var m_identifier
-    <|> fmap Lit m_integer
+    <|> fmap LitInt m_integer
     <?> "term"
 
 
@@ -113,6 +102,21 @@ letRecExp = do m_reserved "letrec"
                e <- expParser
                return (LetRecExp b e)
 
+typeDec :: Parser Exp
+typeDec = do m_reserved "type"
+             name <- typeName
+             m_reservedOp "="
+             constructors <- typeCons `sepBy` m_symbol ","
+             return $ TypeDec name constructors
+
+typeName :: Parser String
+typeName = do t    <- upper
+              rest <- many letter
+              m_whiteSpace
+              return $ t:rest
+
+typeCons :: Parser TypeCons
+typeCons = fmap TypeCons typeName
 
 -- Parse 'if' expression.
 ifExp :: Parser Exp
@@ -140,15 +144,25 @@ app = do (op, ops) <- m_parens (do { op <- expParser
                                    ; return (op, ops)
                                    } )
          return (AppExp op ops)
-         
 
-mainParser :: Parser Exp
-mainParser = m_whiteSpace >> expParser <* eof
+-- FIXME Quick Hack - Some more thought needs to be put into this.
+program :: Parser Exp
+program = typeDec
+       <|> expParser
+
+mainParser :: Parser [Exp]
+mainParser = m_whiteSpace >> many1 program <* eof
 
 
-lparse   :: String -> IO Exp
+lparse   :: String -> IO [Exp]
 lparse f = do 
   result <- parseFromFile mainParser f 
   case result of
     Left err   -> error $ show err
     Right expr -> return expr
+
+-- XXX Sanity checker
+sparse :: String -> IO ()
+sparse str = case (parse mainParser "island" str) of
+               Left error -> print error
+               Right out  -> print out

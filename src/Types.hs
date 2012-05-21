@@ -8,22 +8,29 @@ module Types ( Exp(..)
              , Ident(..)
              , Binding(..)
              , RecBinding(..)
-             , PrimOp(..)) where
+             , PrimOp(..)
+             , TypeName(..)
+             , TypeCons(..)) where
 
 -- ----------------------------------------------
 -- Expressions
 -- ----------------------------------------------
 data Exp =
-    Lit Integer          |
-    Var String           |
-    PrimExp PrimOp [Exp] |
-    IfExp Exp Exp Exp    |
-    LetExp [Binding] Exp |
-    ProcExp [Ident] Exp  |
-    AppExp Exp [Exp]     |
-    LetRecExp [RecBinding] Exp
+    LitString String           |
+    LitType   TypeName         |
+    LitInt    Integer          |
+    LitChar   Char             |
+    Var String                 |
+    PrimExp PrimOp [Exp]       |
+    IfExp Exp Exp Exp          |
+    LetExp [Binding] Exp       |
+    ProcExp [Ident] Exp        |
+    AppExp Exp [Exp]           |
+    LetRecExp [RecBinding] Exp |
+    TypeDec TypeName [TypeCons]
     deriving (Show)
 
+type TypeName = String
 type Ident = String
 type Binding = (Ident, Exp)
 type RecBinding = (Ident, [Ident], Exp)
@@ -38,3 +45,9 @@ data PrimOp =
     Succ  |
     Pred
     deriving (Show)
+
+
+-- ----------------------------------------------
+-- Type Constructors
+-- ----------------------------------------------
+data TypeCons = TypeCons Ident deriving (Show)

@@ -8,12 +8,13 @@ module Main where
 
 import System.Environment (getArgs)
 
-import Env
+-- import Env
 import Frontend
-import Interp
+-- import Interp
 import Types
 
 main = do 
   f:_  <- getArgs
   expr <- lparse f
-  print $ evalExp newEnv expr
+  print expr
+  -- print $ evalExp newEnv expr
