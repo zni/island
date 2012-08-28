@@ -30,7 +30,7 @@ data AST =
     deriving (Show)
 
 data Ident = Ident String (Maybe Type)
-             deriving (Show)
+             deriving (Show, Eq)
 
 type TypeName = String
 type Binding = (Ident, AST)
@@ -60,17 +60,18 @@ data PrimOp =
 -- Types
 -- ----------------------------------------------
 data Type =
-    TypeVar String |
-    Int            |
-    Bool           |
-    Arrow Type Type
+    TVar String      |
+    TInt             |
+    TBool            |
+    TArrow Type Type
+    deriving (Eq)
 
 instance Show Type where
-    show (TypeVar s)                    = s
-    show (Int)                          = "Int"
-    show (Bool)                         = "Bool"
-    show (Arrow left@(Arrow _ _) right) = "("++show left++") -> "++show right
-    show (Arrow left right)             = show left++" -> "++show right
+    show (TVar s)                         = s
+    show (TInt)                           = "Int"
+    show (TBool)                          = "Bool"
+    show (TArrow left@(TArrow _ _) right) = "("++show left++") -> "++show right
+    show (TArrow left right)              = show left++" -> "++show right
 
 -- Nullary type constructor.
 data TypeCons = TypeCons String deriving (Show)
