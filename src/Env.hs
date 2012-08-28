@@ -16,7 +16,7 @@ module Env ( Value(..)
 import Data.Maybe (isJust, fromJust)
 import Data.Array.IArray
 
-import Types
+import AST
 
 -- ----------------------------------------------
 -- Values
@@ -39,14 +39,14 @@ instance Show Value where
 -- ----------------------------------------------
 -- Closure
 -- ----------------------------------------------
-data Closure = Closure [Ident] Exp Env
+data Closure = Closure [Ident] AST Env
 
 
 -- ----------------------------------------------
 -- Env
 -- ----------------------------------------------
 type Env = [([VarRef], Store)]
-type VarRef = (String, Int)
+type VarRef = (Ident, Int)
 type Store = Array Int Value
 
 
@@ -70,7 +70,9 @@ extendEnvRec recs env =
           mapClosure xs e = map (\(_,ids,body) -> ProcVal $ Closure ids body e) xs
 
 applyEnv :: Ident -> Env -> Value
-applyEnv v []     = error $ "Variable \'"++v++"\' never declared."
+applyEnv v []     = 
+    let (Ident s _) = v
+    in error $ "Variable \'"++s++"\' never declared."
 applyEnv v ((vars,d):ds) =
     let loc = findRef v vars
     in if isJust loc then d ! fromJust loc else applyEnv v ds
