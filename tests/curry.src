@@ -1,7 +1,7 @@
-let val f = 
+let val f : Int -> Int -> Int = 
   proc (x)
     proc (y)
       +(x y)
-in let val g = (f 4)
+in let val g : Int -> Int = (f 4)
    in (g 4)
 {- result: 8 -}
