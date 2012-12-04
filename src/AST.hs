@@ -5,36 +5,34 @@
 -- AST for the interpreter.
 -- ----------------------------------------------
 module AST ( AST(..)
-           , Ident(..)
+           , Lit(..)
            , Binding(..)
            , RecBinding(..)
            , PrimOp(..)
            , TypeName(..)
            , TypeCons(..)
-           , Type(..)) where
+           , Type(..)
+           , litToType ) where
 
 -- ----------------------------------------------
 -- Expressions
 -- ----------------------------------------------
 data AST =
     Literal Lit                |
-    Var String                 |
+    Var Type String            |
     PrimExp PrimOp [AST]       |
     IfExp AST AST AST          |
     LetExp [Binding] AST       |
-    ProcExp [Ident] AST        |
+    ProcExp [AST] AST          |
     AppExp AST [AST]           | 
     LetRecExp [RecBinding] AST |
     TypeDec TypeName [TypeCons]|
-    TopLevel Ident AST
+    TopLevel AST [AST] AST
     deriving (Show)
 
-data Ident = Ident String (Maybe Type)
-             deriving (Show, Eq)
-
 type TypeName = String
-type Binding = (Ident, AST)
-type RecBinding = (Ident, [Ident], AST)
+type Binding = (AST, AST)
+type RecBinding = (AST, [AST], AST)
 
 -- Literal values
 data Lit =
@@ -61,17 +59,32 @@ data PrimOp =
 -- ----------------------------------------------
 data Type =
     TVar String      |
+    TUser String     |
     TInt             |
     TBool            |
-    TArrow Type Type
+    TString          |
+    TChar            |
+    TArrow Type Type |
+    TBottom
     deriving (Eq)
 
 instance Show Type where
     show (TVar s)                         = s
     show (TInt)                           = "Int"
     show (TBool)                          = "Bool"
+    show (TString)                        = "String"
+    show (TChar)                          = "Char"
     show (TArrow left@(TArrow _ _) right) = "("++show left++") -> "++show right
     show (TArrow left right)              = show left++" -> "++show right
+    show (TBottom)                        = "_|_"
 
 -- Nullary type constructor.
 data TypeCons = TypeCons String deriving (Show)
+
+-- Convenience functions.
+litToType :: AST -> Type
+litToType (Literal (LString _)) = TString
+litToType (Literal (LBool _))   = TBool
+litToType (Literal (LInt _))    = TInt
+litToType (Literal (LChar _))   = TChar
+litToType _                     = TBottom
