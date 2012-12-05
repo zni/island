@@ -7,13 +7,13 @@
 module Interp (evalExp) where
 
 import Env
-import Types
+import AST
 
 
 -- ----------------------------------------------
 -- Evaluation
 -- ----------------------------------------------
-evalExp :: Env -> Exp -> Value
+evalExp :: Env -> AST -> Value
 
 -- Evaluate a literal expression.
 evalExp _ (Lit i)   = IntVal i
@@ -110,9 +110,14 @@ evalExp env (AppExp op args) =
           appError = error "Attempting to apply non-procedure to operands."
 
 
+evalProgram :: [AST] -> Value
+evalProgram exprs = evalProgram' exprs newEnv NullValue
+    where evalProgram' [AST] -> Env -> Value -> Value
+          evalProgram' [] _ value = value
+          evalProgram' (x:xs) env value = let value' = evalExp env x
 
 -- ----------------------------------------------
 -- Utility functions
 -- ----------------------------------------------
-evalExpList :: Env -> [Exp] -> [Value]
+evalExpList :: Env -> [AST] -> [Value]
 evalExpList env = map (evalExp env)
