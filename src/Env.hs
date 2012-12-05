@@ -3,6 +3,7 @@
 -- Date  : 2011 May 12 20:38:55
 --
 -- The environment for the interpreter.
+-- XXX When the environment is rewritten Ident will be Var (AST).
 -- ----------------------------------------------
 module Env ( Value(..)
            , Closure(..)
@@ -36,29 +37,38 @@ instance Show Value where
     show (ProcVal _)   = "ProcVal"
 
 
+valueToType :: Value -> Type
+valueToType (IntVal _) = TInt
+valueToType (CharVal _) = TChar
+valueToType (StringVal _) = TString
+valueToType (BoolVal _) = TBool
+valueToType (ProcVal (Closure t _ _ _)) = t 
+
 -- ----------------------------------------------
 -- Closure
 -- ----------------------------------------------
-data Closure = Closure [Ident] AST Env
+data Closure = Closure Type [AST] AST Env
 
 
 -- ----------------------------------------------
 -- Env
 -- ----------------------------------------------
 type Env = [([VarRef], Store)]
-type VarRef = (Ident, Int)
+type VarRef = (AST, Int)
 type Store = Array Int Value
 
-
+-- Create a new environment.
 newEnv :: Env
 newEnv = []
 
-extendEnv :: [Ident] -> [Value] -> Env -> Env
+-- Extend the environment.
+extendEnv :: [AST] -> [Value] -> Env -> Env
 extendEnv d v env =
     let varrefs = zip d [0..(length d - 1)]
         arr     = listArray (0, pred $ length d) v
     in (varrefs, arr):env
 
+-- Extend the environment with a recursive binding.
 extendEnvRec :: [RecBinding] -> Env -> Env
 extendEnvRec recs env =
     let procIds = map (\(p,_,_) -> p) recs
@@ -67,15 +77,26 @@ extendEnvRec recs env =
         env2    = (varrefs, arr):env
     in env2
     where mapClosure :: [RecBinding] -> Env -> [Value]
-          mapClosure xs e = map (\(_,ids,body) -> ProcVal $ Closure ids body e) xs
+          -- XXX Fix the type of Closure.
+          mapClosure xs e = map (\(_, ids, body) -> ProcVal $ Closure TBottom ids body e) xs
 
-applyEnv :: Ident -> Env -> Value
+-- Return a value from the environment.
+applyEnv :: AST -> Env -> (Value, Type)
 applyEnv v []     = 
-    let (Ident s _) = v
-    in error $ "Variable \'"++s++"\' never declared."
-applyEnv v ((vars,d):ds) =
-    let loc = findRef v vars
-    in if isJust loc then d ! fromJust loc else applyEnv v ds
-    where findRef _ []         = Nothing
-          findRef s ((n,l):xs) = if s == n then Just l else findRef s xs
+    let (Var _ s) = v
+    in error $ "Variable \'"++s++"\' was never declared."
 
+applyEnv v ((vars, d):ds) =
+    let loc = findRef v vars
+    in if isJust loc 
+           then let val   = d ! fromJust loc
+                    typeN = valueToType val
+                in (val, typeN)
+           else applyEnv v ds
+
+findRef :: AST -> [VarRef] -> Maybe Int
+findRef _ []          = Nothing
+findRef s ((n, l):xs) = 
+  if s == n 
+    then Just l
+    else findRef s xs
