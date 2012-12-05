@@ -8,13 +8,21 @@ module Main where
 
 import System.Environment (getArgs)
 
--- import Env
+import Env
 import Frontend
 -- import Interp
-import Types
+import AST
 
 main = do 
   f:_  <- getArgs
-  expr <- lparse f
-  print expr
+  if null f
+    then printUsage
+    else do expr <- lparse f
+            print expr
   -- print $ evalExp newEnv expr
+
+
+printUsage :: IO ()
+printUsage = do
+  putStrLn "island v0.1"
+  putStrLn "usage - island <source>"
