@@ -28,7 +28,7 @@ data AST =
     LetRecExp [RecBinding] AST |
     TypeDec TypeName [TypeCons]|
     TopLevel AST [AST] AST
-    deriving (Show)
+    deriving (Show, Eq)
 
 type TypeName = String
 type Binding = (AST, AST)
@@ -40,7 +40,7 @@ data Lit =
     LInt Integer   |
     LChar Char     |
     LBool Bool
-    deriving (Show)
+    deriving (Show, Eq)
 
 -- Primitive operations.
 data PrimOp =
@@ -51,7 +51,7 @@ data PrimOp =
     Mod   |
     Succ  |
     Pred
-    deriving (Show)
+    deriving (Show, Eq)
 
 
 -- ----------------------------------------------
@@ -79,7 +79,7 @@ instance Show Type where
     show (TBottom)                        = "_|_"
 
 -- Nullary type constructor.
-data TypeCons = TypeCons String deriving (Show)
+data TypeCons = TypeCons String deriving (Show, Eq)
 
 -- Convenience functions.
 litToType :: AST -> Type
