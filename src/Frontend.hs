@@ -42,27 +42,34 @@ TokenParser{ parens = m_parens
            , stringLiteral = m_stringLiteral} = makeTokenParser def
 
 
--- Parse an identifier with possible type annotation.
-varType :: Parser AST
-varType = try typed <|> untyped
-    where typed = do ident <- m_identifier
-                     m_reserved ":"
-                     typeN <- typeAnnotParse
-                     return $ Var typeN ident
-          untyped = do ident <- m_identifier
-                       return $ Var TBottom ident
+-- Parse an identifier with type annotation.
+typedVar :: Parser AST
+typedVar = do
+  ident <- m_identifier
+  m_reserved ":"
+  typeN <- typeAnnotParse
+  return $ Var typeN ident
 
+-- Parse an identifier without a type annotation.
+untypedVar :: Parser AST
+untypedVar = do
+  ident <- m_identifier
+  return $ Var TBottom ident
+
+
+-- Parse a type annotation.
 typeAnnotParse :: Parser Type
 typeAnnotParse = do
     t <- try arrow <|> unary
     return $ typeStringToType t
-    where arrow = do a <- m_identifier `sepBy` m_symbol "->"
+    where arrow = do a <- typeName `sepBy` m_symbol "->"
                      return a
-          unary = do ident <- m_identifier
+          unary = do ident <- typeName
                      return [ident]
 
 
--- XXX Maybe move into AST.hs
+-- XXX   Maybe move into AST.hs
+-- FIXME This is broken.
 typeStringToType :: [String] -> Type
 typeStringToType (a:[]) = toType a
 typeStringToType (a:xs) = TArrow (toType a) (typeStringToType xs)
@@ -100,6 +107,7 @@ ops =  (m_reservedOp "+" >> return Add)
    <?> "operand"
 
 
+-- TODO Overhaul the way we handle these.
 primExp :: Parser AST
 primExp = do
   op <- ops
@@ -112,7 +120,7 @@ primExp = do
 -- Expression terms
 term = primExp
     <|> app
-    <|> varType
+    <|> untypedVar
     <|> fmap (\x -> Literal $ LInt x) m_integer
     <|> fmap (\x -> Literal $ LString x) m_stringLiteral
     <?> "term"
@@ -122,7 +130,7 @@ term = primExp
 letExp :: Parser AST
 letExp = do try $ m_reserved "let"
             b <- many1 ( do { m_reserved "val"
-                            ; i <- varType
+                            ; i <- typedVar
                             ; m_reservedOp "="
                             ; e <- expParser
                             ; return (i, e)
@@ -135,8 +143,8 @@ letExp = do try $ m_reserved "let"
 -- Parse 'letrec' expression.
 letRecExp :: Parser AST
 letRecExp = do m_reserved "letrec"
-               b <- many1 ( do { procName <- varType
-                               ; ids <- m_parens $ varType `sepBy` m_symbol ","
+               b <- many1 ( do { procName <- typedVar
+                               ; ids <- m_parens $ typedVar `sepBy` m_symbol ","
                                ; m_reservedOp "="
                                ; body <- expParser
                                ; return (procName, ids, body)
@@ -178,7 +186,7 @@ ifExp = do m_reserved "if"
 -- Parse 'proc' expression.
 proc :: Parser AST
 proc = do m_reserved "proc"
-          ids <- m_parens $ varType `sepBy` m_symbol ","
+          ids <- m_parens $ typedVar `sepBy` m_symbol ","
           body <- expParser
           return (ProcExp ids body)
 
@@ -194,8 +202,8 @@ app = do (op, ops) <- m_parens (do { op <- expParser
 topLevel :: Parser AST
 topLevel = do
   m_reserved "fun"
-  id <- varType
-  vars <-  varType `sepBy` m_whiteSpace
+  id <- typedVar
+  vars <-  typedVar `sepBy` m_whiteSpace
   m_reservedOp "="
   expr <- expParser
   return $ TopLevel id vars expr
