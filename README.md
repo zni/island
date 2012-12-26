@@ -5,6 +5,5 @@ Interpreter written in Haskell based on the interpreter from the
 
 Usage
 -----
-        cd src
-        ghc Main.hs -o island
-        ./island <file>.src
+        make
+        bin/island <file>.src
