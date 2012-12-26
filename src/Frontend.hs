@@ -44,7 +44,7 @@ TokenParser{ parens = m_parens
            , stringLiteral = m_stringLiteral} = makeTokenParser def
 
 
--- Parse an identifier with type annotation.
+-- Parse an identifier with a type.
 typedIdent :: Parser AST
 typedIdent = do
   ident <- m_identifier
@@ -52,7 +52,7 @@ typedIdent = do
   typeN <- typeExpr
   return $ Var typeN ident
 
--- Parse an identifier without a type annotation.
+-- Parse an identifier without a type.
 untypedIdent :: Parser AST
 untypedIdent = do
   ident <- m_identifier
@@ -97,6 +97,12 @@ typeVar :: Parser Type
 typeVar = do
   var <- m_identifier
   return $ TVar var
+
+typeName :: Parser String
+typeName = do t    <- upper
+              rest <- many letter
+              m_whiteSpace
+              return $ t:rest
 
 
 expParser :: Parser AST
@@ -167,24 +173,6 @@ letRecExp = do m_reserved "letrec"
                return (LetRecExp b e)
 
 
--- Parse 'type' declaration.
-typeDec :: Parser AST
-typeDec = do m_reserved "type"
-             name <- typeName
-             m_reservedOp "="
-             constructors <- typeCons `sepBy` m_symbol ","
-             return $ TypeDec name constructors
-
-typeName :: Parser String
-typeName = do t    <- upper
-              rest <- many letter
-              m_whiteSpace
-              return $ t:rest
-
-typeCons :: Parser TypeCons
-typeCons = fmap TypeCons typeName
-
-
 -- Parse 'if' expression.
 ifExp :: Parser AST
 ifExp = do m_reserved "if"
@@ -222,8 +210,7 @@ topLevel = do
   return $ TopLevel id vars expr
 
 program :: Parser AST
-program = typeDec
-       <|> topLevel
+program = topLevel
        <|> expParser
 
 mainParser :: Parser [AST]

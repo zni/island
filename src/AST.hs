@@ -9,8 +9,6 @@ module AST ( AST(..)
            , Binding(..)
            , RecBinding(..)
            , PrimOp(..)
-           , TypeName(..)
-           , TypeCons(..)
            , Type(..)
            , litToType ) where
 
@@ -26,11 +24,9 @@ data AST =
     ProcExp [AST] AST          |
     AppExp AST [AST]           | 
     LetRecExp [RecBinding] AST |
-    TypeDec TypeName [TypeCons]|
     TopLevel AST [AST] AST
     deriving (Show, Eq)
 
-type TypeName = String
 type Binding = (AST, AST)
 type RecBinding = (AST, [AST], AST)
 
@@ -77,9 +73,6 @@ instance Show Type where
     show (TArrow left@(TArrow _ _) right) = "("++show left++") -> "++show right
     show (TArrow left right)              = show left++" -> "++show right
     show (TBottom)                        = "_|_"
-
--- Nullary type constructor.
-data TypeCons = TypeCons String deriving (Show, Eq)
 
 -- Convenience functions.
 litToType :: AST -> Type
