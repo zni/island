@@ -1,7 +1,7 @@
-let val x = 5
-    val y = *(7 7)
-in let val x = *(x 5)
-       val y = *(y y)
-       val z = let val a = 4 in a
+let val x : Int = 5
+    val y : Int = *(7 7)
+in let val x : Int = *(x 5)
+       val y : Int = *(y y)
+       val z : Int = let val a = 4 in a
    in +(x y)
 {- result: 2426 -}

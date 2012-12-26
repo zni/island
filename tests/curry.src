@@ -1,6 +1,6 @@
 let val f : Int -> Int -> Int = 
-  proc (x)
-    proc (y)
+  proc (x : Int)
+    proc (y : Int)
       +(x y)
 in let val g : Int -> Int = (f 4)
    in (g 4)

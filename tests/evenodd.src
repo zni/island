@@ -1,6 +1,6 @@
-letrec zero(x) = if x then 0 else 1
+letrec zero : Int -> Int (x : Int) = if x then 0 else 1
 in letrec
-        even(x) = if (zero x) then 1 else (odd -(x 1))
-        odd(x)  = if (zero x) then 0 else (even -(x 1))
+        even : Int -> Int (x : Int) = if (zero x) then 1 else (odd -(x 1))
+        odd : Int -> Int (x : Int)  = if (zero x) then 0 else (even -(x 1))
    in +((even 13) (odd 9) (even 4) (odd 6))
 {- result: 2 -}

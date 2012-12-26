@@ -1,5 +1,5 @@
-let val isZero = proc (x) if x then 0 else 1
+let val isZero : Int -> Int  = proc (x : Int) if x then 0 else 1
 in letrec
-    fact(x) = if (isZero x) then 1 else *(x (fact -(x 1)))
+    fact : Int -> Int (x : Int) = if (isZero x) then 1 else *(x (fact -(x 1)))
 in (fact 4)
 {- result: 24 -}
