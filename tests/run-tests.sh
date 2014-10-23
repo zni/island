@@ -1,3 +1,3 @@
 #!/bin/bash
-
-ls -1 tests | while read test; do island tests/$test; done
+ISLAND=dist/build/island/island
+ls -1 tests | while read test; do $ISLAND tests/$test; done
