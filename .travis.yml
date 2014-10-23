@@ -1,3 +1,6 @@
 language: haskell
 notifications:
   email: false
+
+install: sudo runghc Setup.hs install
+script: ./tests/run-tests.sh
