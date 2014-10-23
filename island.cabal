@@ -1,0 +1,12 @@
+Name:          island
+Version:       0.1
+Cabal-Version: >= 1.2
+License:       BSD3
+Author:        Matt Godshall
+Synopsis:      Toy let-lang
+Build-Type:    Simple
+
+Executable island
+  Build-Depends:  base, parsec, array
+  Main-Is:        Main.hs
+  Hs-Source-Dirs: src
