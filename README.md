@@ -7,6 +7,7 @@ Interpreter written in Haskell based on the interpreter from the
 
 Usage
 -----
-        cd src
-        ghc Main.hs -o island
-        ./island <file>.src
+        runghc Setup.hs configure
+        runghc Setup.hs build
+        runghc Setup.hs install
+        island <file>.src
