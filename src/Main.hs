@@ -14,7 +14,9 @@ import Interp
 import Types
 
 main = do 
-  f:_  <- getArgs
-  expr <- lparse f
-  print expr
-  print $ evalExp newEnv expr
+  args <- getArgs
+  if null args
+    then error "No input file specified."
+    else do expr <- lparse $ head args
+            putStrLn $ "parsed: " ++ show expr
+            putStrLn $ "result: " ++ show (evalExp newEnv expr)
